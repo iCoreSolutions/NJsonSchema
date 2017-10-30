@@ -259,6 +259,30 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
         }
 
         [TestMethod]
+        public async Task When_property_has_interger_default_it_is_reflected_in_the_poco()
+        {
+            var data = @"{'properties': {
+                                'intergerWithDefault': {      
+                                    'type': 'integer',
+                                    'format': 'int32',
+                                    'default': 5
+                                 }
+                             }}";
+
+            var schema = await JsonSchema4.FromJsonAsync(data);
+            var settings = new CSharpGeneratorSettings
+            {
+                ClassStyle = CSharpClassStyle.Poco,
+                Namespace = "ns",
+                GenerateDefaultValues = true
+            };
+            var gen = new CSharpGenerator(schema, settings);
+            var output = gen.GenerateFile("MyClass");
+
+            Assert.IsTrue(output.Contains("public int IntergerWithDefault { get; set; } = 5;"));
+        }
+
+        [TestMethod]
         public async Task When_property_has_boolean_default_it_is_reflected_in_the_poco()
         {
             var data = @"{'properties': {
@@ -411,7 +435,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             //// Arrange
             var schema = await JsonSchema4.FromTypeAsync<Teacher>();
             schema.Properties["Class"].Description = "PropertyDesc.";
-            var generator = new CSharpGenerator(schema);
+            var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings { ClassStyle = CSharpClassStyle.Poco });
 
             //// Act
             var output = generator.GenerateFile("MyClass");
@@ -511,7 +535,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             Assert.AreEqual(
 @"{
   ""$schema"": ""http://json-schema.org/draft-04/schema#""
-}".Replace("\r", string.Empty), schema.Properties["Foo"].ActualPropertySchema.ToJson().Replace("\r", string.Empty));
+}".Replace("\r", string.Empty), schema.Properties["Foo"].ActualTypeSchema.ToJson().Replace("\r", string.Empty));
         }
 
         [TestMethod]
@@ -786,7 +810,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -830,7 +854,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -883,7 +907,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -917,7 +941,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -1006,12 +1030,12 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
             //// Assert
-            Assert.IsTrue(code.Contains("[System.ComponentModel.DataAnnotations.Range(1.0, double.MaxValue)]"));
+            Assert.IsTrue(code.Contains("[System.ComponentModel.DataAnnotations.Range(1, int.MaxValue)]"));
         }
 
         [TestMethod]
@@ -1034,12 +1058,12 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
             //// Assert
-            Assert.IsTrue(code.Contains("[System.ComponentModel.DataAnnotations.Range(double.MinValue, 10.0)]"));
+            Assert.IsTrue(code.Contains("[System.ComponentModel.DataAnnotations.Range(int.MinValue, 10)]"));
         }
 
         [TestMethod]
@@ -1063,12 +1087,12 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
             //// Assert
-            Assert.IsTrue(code.Contains("[System.ComponentModel.DataAnnotations.Range(1.0, 10.0)]"));
+            Assert.IsTrue(code.Contains("[System.ComponentModel.DataAnnotations.Range(1, 10)]"));
         }
 
         [TestMethod]
@@ -1091,7 +1115,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -1119,7 +1143,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -1147,7 +1171,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -1176,7 +1200,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -1205,7 +1229,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -1233,7 +1257,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -1261,7 +1285,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger
+                SchemaType = SchemaType.Swagger2
             });
             var code = generator.GenerateFile("MyClass");
 
@@ -1299,7 +1323,7 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
             var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
             {
                 ClassStyle = CSharpClassStyle.Poco,
-                NullHandling = NullHandling.Swagger,
+                SchemaType = SchemaType.Swagger2,
                 // define that no data annotations should be included
                 GenerateDataAnnotations = false
             });
@@ -1348,6 +1372,96 @@ namespace NJsonSchema.CodeGeneration.Tests.CSharp
 
             //// Assert
             Assert.IsTrue(code.Contains("public int Foo { get; set; }"));
+        }
+
+        [TestMethod]
+        public async Task When_definition_contains_date_converter_should_be_added_for_datetime()
+        {
+            //// Arrange
+            var json =
+@"{
+	""type"": ""object"", 
+	""properties"": {
+		""a"": {
+    		""type"": ""string"",
+            ""format"": ""date""
+        }
+	}
+}";
+            var schema = await JsonSchema4.FromJsonAsync(json);
+
+            //// Act
+            var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
+            {
+                ClassStyle = CSharpClassStyle.Poco,
+                SchemaType = SchemaType.Swagger2,
+                DateType = "System.DateTime"
+            });
+            var code = generator.GenerateFile("MyClass");
+
+            //// Assert
+            Assert.IsTrue(code.Contains(@"class DateFormatConverter"));
+            Assert.IsTrue(code.Contains(@"[Newtonsoft.Json.JsonConverter(typeof(DateFormatConverter))]"));
+	    }
+
+        [TestMethod]
+        public async Task When_definition_contains_date_converter_should_be_added_for_datetimeoffset()
+        {
+            //// Arrange
+            var json =
+@"{
+	""type"": ""object"", 
+	""properties"": {
+		""a"": {
+    		""type"": ""string"",
+            ""format"": ""date""
+        }
+	}
+}";
+            var schema = await JsonSchema4.FromJsonAsync(json);
+
+            //// Act
+            var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
+            {
+                ClassStyle = CSharpClassStyle.Poco,
+                SchemaType = SchemaType.Swagger2,
+                DateType = "System.DateTimeOffset"
+            });
+            var code = generator.GenerateFile("MyClass");
+
+            //// Assert
+            Assert.IsTrue(code.Contains(@"class DateFormatConverter"));
+            Assert.IsTrue(code.Contains(@"[Newtonsoft.Json.JsonConverter(typeof(DateFormatConverter))]"));
+        }
+
+        [TestMethod]
+        public async Task When_definition_contains_datetime_converter_should_not_be_added()
+        {
+            //// Arrange
+            var json =
+                @"{
+	""type"": ""object"", 
+	""properties"": {
+		""a"": {
+    		""type"": ""string"",
+            ""format"": ""date-time""
+        }
+	}
+}";
+            var schema = await JsonSchema4.FromJsonAsync(json);
+
+            //// Act
+            var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings
+            {
+                ClassStyle = CSharpClassStyle.Poco,
+                SchemaType = SchemaType.Swagger2,
+                DateType = "System.DateTime"
+            });
+            var code = generator.GenerateFile("MyClass");
+
+            //// Assert
+            Assert.IsFalse(code.Contains(@"class DateFormatConverter"));
+            Assert.IsFalse(code.Contains(@"[Newtonsoft.Json.JsonConverter(typeof(DateFormatConverter))]"));
         }
     }
 }

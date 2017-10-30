@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using NJsonSchema.CodeGeneration.CSharp;
 using NJsonSchema.CodeGeneration.TypeScript;
 using NJsonSchema.Converters;
@@ -40,14 +42,37 @@ namespace NJsonSchema.CodeGeneration.Tests
         public string Prop1 { get; set; }
     }
 
+    [KnownType("GetTypes")]
     public class SubClass2 : SubClass
     {
         public string Prop2 { get; set; }
+
+        public static Type[] GetTypes()
+        {
+            return new Type[] { typeof(SubClass3) };
+        }
+    }
+
+    public class SubClass3 : SubClass2
+    {
+        public string Prop3 { get; set; }
     }
 
     [TestClass]
     public class InheritanceSerializationTests
     {
+        [TestMethod]
+        public void When_JsonInheritanceConverter_is_passed_null_it_deserializes_to_null()
+        {
+            //// Arrange
+
+            //// Act
+            var result = JsonConvert.DeserializeObject<SubClass>("null");
+
+            //// Assert
+            Assert.IsNull(result);
+        }
+
         [TestMethod]
         public async Task When_JsonInheritanceConverter_is_used_then_inheritance_is_correctly_serialized_and_deserialized()
         {
@@ -58,7 +83,11 @@ namespace NJsonSchema.CodeGeneration.Tests
                 {
                     Foo = "foo",
                     Bar = "bar",
-                    SubElements = new List<SubClass> { new SubClass1 { Prop1 = "x" }, new SubClass2 { Prop2 = "x" } }
+                    SubElements = new List<SubClass>
+                    {
+                        new SubClass1 { Prop1 = "x" },
+                        new SubClass3 { Prop2 = "x", Prop3 = "y"}
+                    }
                 }
             };
 
@@ -73,6 +102,79 @@ namespace NJsonSchema.CodeGeneration.Tests
             //// Assert
             Assert.IsTrue(deserializedContainer.Animal is Dog);
             Assert.IsTrue((deserializedContainer.Animal as Dog).SubElements.First() is SubClass1);
+            Assert.IsTrue((deserializedContainer.Animal as Dog).SubElements[1] is SubClass3);
+        }
+
+        [TestMethod]
+        public async Task When_serializer_setting_is_changed_then_converter_uses_correct_settings()
+        {
+            //// Arrange
+            var container = new Container
+            {
+                Animal = new Dog
+                {
+                    Foo = "foo",
+                    Bar = "bar",
+                    SubElements = new List<SubClass>
+                    {
+                        new SubClass1 { Prop1 = "x" },
+                        new SubClass3 { Prop2 = "x", Prop3 = "y"}
+                    }
+                }
+            };
+
+            //// Act
+            var settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+            var json = JsonConvert.SerializeObject(container, Formatting.Indented, settings);
+            var deserializedContainer = JsonConvert.DeserializeObject<Container>(json);
+
+            //// Assert
+            Assert.IsTrue(json.Contains("prop3"));
+            Assert.IsFalse(json.Contains("Prop3"));
+        }
+
+        public class A
+        {
+            // not processed by JsonInheritanceConverter
+            public DateTimeOffset created { get; set; }
+
+            public C subclass { get; set; }
+        }
+
+        [JsonConverter(typeof(JsonInheritanceConverter), "discriminator")]
+        [KnownType(typeof(C))]
+        public class B
+        {
+            // processed by JsonInheritanceConverter
+            public DateTimeOffset created { get; set; }
+        }
+
+        public class C : B
+        {
+        }
+        
+        [TestMethod]
+        public async Task When_dates_are_converted_then_JsonInheritanceConverter_should_inherit_settings()
+        {
+            //// Arrange
+            var offset = new TimeSpan(10, 0, 0);
+            var x = new A
+            {
+                created = DateTimeOffset.Now.ToOffset(offset),
+                subclass = new C
+                {
+                    created = DateTimeOffset.Now.ToOffset(offset),
+                }
+            };
+
+            //// Act
+            var settings = new JsonSerializerSettings { DateParseHandling = DateParseHandling.DateTimeOffset };
+            var json = JsonConvert.SerializeObject(x, Formatting.Indented, settings);
+            var deserialized = JsonConvert.DeserializeObject<A>(json, settings);
+
+            //// Assert
+            Assert.AreEqual(deserialized.created.Offset, offset);
+            Assert.AreEqual(deserialized.subclass.created.Offset, offset);
         }
 
         [TestMethod]
@@ -102,7 +204,7 @@ namespace NJsonSchema.CodeGeneration.Tests
             var schema = await JsonSchema4.FromTypeAsync<Container>();
 
             //// Act
-            var baseSchema = schema.Properties["Animal"].ActualPropertySchema.ActualSchema;
+            var baseSchema = schema.Properties["Animal"].ActualTypeSchema.ActualSchema;
             var discriminator = baseSchema.Discriminator;
             var property = baseSchema.Properties["discriminator"];
 

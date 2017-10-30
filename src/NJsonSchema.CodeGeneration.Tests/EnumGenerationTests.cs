@@ -63,12 +63,12 @@ namespace NJsonSchema.CodeGeneration.Tests
 
             //// Act
             var generator = new CSharpGenerator(schema);
-            var code = generator.GenerateFile("MyClass");
+            var code = generator.GenerateFile("MyClass").Replace("\r", "");
 
             //// Assert
             Assert.IsFalse(code.Contains("Ref_"));
-            Assert.IsTrue(code.Contains("public enum Bar\r\n"));
-            Assert.IsTrue(code.Contains("public enum Bar2\r\n"));
+            Assert.IsTrue(code.Contains("public enum Bar\n"));
+            Assert.IsTrue(code.Contains("public enum Bar2\n"));
 
             Assert.IsTrue(code.Contains(" B = 5,")); // B must be 5 even if B = 1 is first defined
             Assert.AreEqual(3, code.Split(new[] { "public enum " }, StringSplitOptions.None).Count()); // two found (one string and one integer based enum)
@@ -240,6 +240,39 @@ namespace NJsonSchema.CodeGeneration.Tests
             Assert.IsTrue(code.Contains("_0562 = 0,"));
             Assert.IsTrue(code.Contains("[System.Runtime.Serialization.EnumMember(Value = \"0532\")]"));
             Assert.IsTrue(code.Contains("_0532 = 1,"));
+        }
+
+        [TestMethod]
+        public async Task When_property_is_nullable_and_enum_allows_null_then_no_exception_is_thrown()
+        {
+            //// Arrange
+            var json = @"{  
+   ""type"":""object"",
+   ""properties"":{  
+      ""paataenktHandling"":{  
+         ""title"":""paataenktHandling"",
+         ""description"":""EAID_D38C4D27_B57C_4356_89E1_05E8DA0250B6"",
+         ""type"":[  
+            ""string"",
+            ""null""
+         ],
+         ""enum"":[  
+            ""Ændring"",
+            ""Nyoprettelse"",
+            ""Udgår"",
+            null
+         ]
+      }
+   }
+}";
+            var schema = await JsonSchema4.FromJsonAsync(json);
+
+            //// Act
+            var generator = new CSharpGenerator(schema, new CSharpGeneratorSettings());
+            var code = generator.GenerateFile("Foo");
+
+            //// Assert
+            Assert.IsNotNull(code);
         }
     }
 }

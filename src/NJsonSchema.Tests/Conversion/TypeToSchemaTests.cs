@@ -88,6 +88,24 @@ namespace NJsonSchema.Tests.Conversion
             Assert.AreEqual("regex", schema.Properties["RegexString"].Pattern);
         }
 
+        public class ClassWithRegexDictionaryProperty
+        {
+            [RegularExpression("^\\d+\\.\\d+\\.\\d+\\.\\d+$")]
+            public Dictionary<string, string> Versions { get; set; }
+        }
+
+        [TestMethod]
+        public async Task When_dictionary_property_has_regex_attribute_then_regex_is_added_to_additionalProperties()
+        {
+            //// Act
+            var schema = await JsonSchema4.FromTypeAsync<ClassWithRegexDictionaryProperty>();
+            var json = schema.ToJson();
+
+            //// Assert
+            Assert.IsNull(schema.Properties["Versions"].Pattern);
+            Assert.IsNotNull(schema.Properties["Versions"].AdditionalPropertiesSchema.ActualSchema.Pattern);
+        }
+
         [TestMethod]
         public async Task When_converting_range_property_then_it_should_be_set_as_min_max()
         {
@@ -152,7 +170,7 @@ namespace NJsonSchema.Tests.Conversion
 
             //// Assert
             var property = schema.Properties["Reference"];
-            Assert.IsTrue(property.IsNullable(NullHandling.JsonSchema));
+            Assert.IsTrue(property.IsNullable(SchemaType.JsonSchema));
             Assert.IsTrue(schema.Definitions.Any(d => d.Key == "MySubtype"));
         }
         
@@ -167,10 +185,10 @@ namespace NJsonSchema.Tests.Conversion
             var property = schema.Properties["Color"];
 
             //// Assert
-            Assert.AreEqual(3, property.ActualPropertySchema.Enumeration.Count); // Color property has StringEnumConverter
-            Assert.IsTrue(property.ActualPropertySchema.Enumeration.Contains("Red"));
-            Assert.IsTrue(property.ActualPropertySchema.Enumeration.Contains("Green"));
-            Assert.IsTrue(property.ActualPropertySchema.Enumeration.Contains("Blue"));
+            Assert.AreEqual(3, property.ActualTypeSchema.Enumeration.Count); // Color property has StringEnumConverter
+            Assert.IsTrue(property.ActualTypeSchema.Enumeration.Contains("Red"));
+            Assert.IsTrue(property.ActualTypeSchema.Enumeration.Contains("Green"));
+            Assert.IsTrue(property.ActualTypeSchema.Enumeration.Contains("Blue"));
         }
 
         public class ClassWithJObjectProperty
@@ -187,9 +205,9 @@ namespace NJsonSchema.Tests.Conversion
             var property = schema.Properties["Property"];
 
             //// Assert
-            Assert.IsTrue(property.IsNullable(NullHandling.JsonSchema));
-            Assert.IsTrue(property.ActualPropertySchema.IsAnyType);
-            Assert.IsTrue(property.ActualPropertySchema.AllowAdditionalItems);
+            Assert.IsTrue(property.IsNullable(SchemaType.JsonSchema));
+            Assert.IsTrue(property.ActualTypeSchema.IsAnyType);
+            Assert.IsTrue(property.ActualTypeSchema.AllowAdditionalItems);
             Assert.AreEqual(0, property.Properties.Count);
         }
 

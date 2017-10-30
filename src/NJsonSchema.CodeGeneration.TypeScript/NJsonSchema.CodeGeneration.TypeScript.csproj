@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net451</TargetFrameworks>
     <Description>JSON Schema draft v4 reader, generator and validator for .NET</Description>
-    <Version>9.2.3</Version>
+    <Version>9.9.17</Version>
     <PackageTags>json schema validation generator .net</PackageTags>
     <Copyright>Copyright © Rico Suter, 2017</Copyright>
     <PackageLicenseUrl>https://github.com/rsuter/NJsonSchema/blob/master/LICENSE.md</PackageLicenseUrl>
@@ -17,6 +17,38 @@
   <PropertyGroup>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard1.3|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Templates\Liquid\Class.liquid" />
+    <None Remove="Templates\Liquid\ConvertToClass.Liquid" />
+    <None Remove="Templates\Liquid\ConvertToJavaScriptTemplate.liquid" />
+    <None Remove="Templates\Liquid\Enum.liquid" />
+    <None Remove="Templates\Liquid\File.liquid" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Templates\Liquid\Class.liquid">
+      <Generator></Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Templates\Liquid\ConvertToClass.Liquid" />
+    <EmbeddedResource Include="Templates\Liquid\ConvertToJavaScriptTemplate.liquid" />
+    <EmbeddedResource Include="Templates\Liquid\Enum.liquid" />
+    <EmbeddedResource Include="Templates\Liquid\File.liquid" />
+    <EmbeddedResource Include="Templates\Liquid\Interface.liquid">
+      <Generator></Generator>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Templates\Liquid\KnockoutClass.liquid">
+      <Generator></Generator>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Templates\Liquid\File.ReferenceHandling.liquid">
+      <Generator></Generator>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />

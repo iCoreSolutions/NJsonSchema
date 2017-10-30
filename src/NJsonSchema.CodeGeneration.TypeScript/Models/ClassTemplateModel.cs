@@ -35,12 +35,12 @@ namespace NJsonSchema.CodeGeneration.TypeScript.Models
             _schema = schema;
             _resolver = resolver;
 
-            Class = typeName;
+            ClassName = typeName;
             DiscriminatorName = discriminatorName;
         }
 
         /// <summary>Gets the class name.</summary>
-        public override string Class { get; }
+        public override string ClassName { get; }
 
         /// <summary>Gets the name for the discriminator check.</summary>
         public string DiscriminatorName { get; }
@@ -60,9 +60,6 @@ namespace NJsonSchema.CodeGeneration.TypeScript.Models
         /// <summary>Gets the description.</summary>
         public string Description => ConversionUtilities.RemoveLineBreaks(_schema.Description);
 
-        /// <summary>Gets the inherited schema.</summary>
-        public JsonSchema4 InheritedSchema => _schema.InheritedSchema?.ActualSchema;
-
         /// <summary>Gets a value indicating whether this class has a parent class.</summary>
         public bool HasInheritance => InheritedSchema != null && !InheritedSchema.IsDictionary;
 
@@ -74,11 +71,11 @@ namespace NJsonSchema.CodeGeneration.TypeScript.Models
                 if (HasInheritance)
                 {
                     return " extends " + BaseClass + (GenerateConstructorInterface && _settings.TypeStyle == TypeScriptTypeStyle.Class ?
-                        " implements I" + Class : string.Empty);
+                        " implements I" + ClassName : string.Empty);
                 }
 
                 return GenerateConstructorInterface && _settings.TypeStyle == TypeScriptTypeStyle.Class ?
-                    " implements I" + Class : string.Empty;
+                    " implements I" + ClassName : string.Empty;
             }
         }
 
@@ -96,6 +93,9 @@ namespace NJsonSchema.CodeGeneration.TypeScript.Models
 
         /// <summary>Gets or sets a value indicating whether to generate an class interface which is used in the constructor to initialize the class (default: true).</summary>
         public bool GenerateConstructorInterface => _settings.GenerateConstructorInterface;
+
+        /// <summary>Gets or sets a value indicating whether POJO objects in the constructor data are converted to DTO instances (default: true).</summary>
+        public bool ConvertConstructorInterfaceData => _settings.ConvertConstructorInterfaceData;
 
         /// <summary>Gets the null value.</summary>
         public string NullValue => _settings.NullValue.ToString().ToLowerInvariant();
@@ -120,6 +120,9 @@ namespace NJsonSchema.CodeGeneration.TypeScript.Models
         /// <summary>Gets the property models.</summary>
         public List<PropertyModel> Properties => _schema.ActualProperties.Values
             .Where(v => v.IsInheritanceDiscriminator == false)
-            .Select(property => new PropertyModel(this, property, Class, _resolver, _settings)).ToList();
+            .Select(property => new PropertyModel(this, property, ClassName, _resolver, _settings)).ToList();
+
+        /// <summary>Gets the inherited schema.</summary>
+        private JsonSchema4 InheritedSchema => _schema.InheritedSchema?.ActualSchema;
     }
 }

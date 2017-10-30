@@ -12,6 +12,12 @@ namespace NJsonSchema.Tests.Schema
     public class JsonSchemaTests
     {
         [TestMethod]
+        public async Task Ensure_NJS_does_not_run_in_legacy_mode()
+        { 
+            Assert.IsFalse(JsonSchema4.ToolchainVersion.Contains("NET40"));
+        }
+
+        [TestMethod]
         public void When_creating_schema_without_setting_properties_then_it_is_empty()
         {
             //// Arrange
@@ -145,6 +151,23 @@ namespace NJsonSchema.Tests.Schema
             //// Assert
             Assert.IsTrue(schema.Type.HasFlag(JsonObjectType.String));
             Assert.AreEqual(JsonObjectType.String, schema.Type);
+        }
+
+        [TestMethod]
+        public async Task When_deserializing_schema_it_should_not_stackoverflow()
+        {
+            //// Arrange
+            var data =
+@"{
+    ""x-dateTime"": ""2016-07-28T14:39:37.937Z""
+}";
+
+            //// Act
+            var schema = await JsonSchema4.FromJsonAsync(data);
+            var x = schema.ToJson();
+
+            //// Assert
+            Assert.IsInstanceOfType(schema.ExtensionData.First().Value, typeof(DateTime));
         }
 
         [TestMethod]
@@ -323,7 +346,7 @@ namespace NJsonSchema.Tests.Schema
             var data = schema.ToJson();
 
             //// Assert
-            var propertySchema = schema.Properties["topProp"].ActualPropertySchema;
+            var propertySchema = schema.Properties["topProp"].ActualTypeSchema;
         }
 
         [TestMethod]
@@ -358,7 +381,7 @@ namespace NJsonSchema.Tests.Schema
             var data = schema.ToJson();
 
             //// Assert
-            Assert.IsNotNull(schema.AllOf.First().SchemaReference);
+            Assert.IsNotNull(schema.AllOf.First().Reference);
         }
 
         [TestMethod]
@@ -375,6 +398,21 @@ namespace NJsonSchema.Tests.Schema
 
             //// Assert
             Assert.IsNotNull(json);
+        }
+
+        [TestMethod]
+        public async Task When_schema_has_metadata_properties_it_can_still_be_read()
+        {
+            //// Arrange
+            var json = @"{ ""type"": ""object"", ""additionalProperties"": false, ""properties"": { ""$type"": 
+                { ""type"": ""string"", ""enum"": [ ""file"" ] }, ""Id"": { ""type"": ""string"", 
+                ""format"": ""guid"" }, ""Name"": { ""type"": ""string"" } }, ""required"": [ ""$type"", ""Id"", ""Name"" ] }";
+
+            //// Act
+            var schema = await JsonSchema4.FromJsonAsync(json);
+
+            //// Assert
+            // No exception
         }
     }
 }

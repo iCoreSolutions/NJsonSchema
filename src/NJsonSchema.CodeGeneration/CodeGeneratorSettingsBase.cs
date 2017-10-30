@@ -18,10 +18,14 @@ namespace NJsonSchema.CodeGeneration
         {
             GenerateDefaultValues = true;
             ExcludedTypeNames = new string[] { };
+
+#if DEBUG
+            UseLiquidTemplates = true;
+#endif
         }
 
-        /// <summary>Gets or sets the property nullability handling.</summary>
-        public NullHandling NullHandling { get; set; } = NullHandling.JsonSchema;
+        /// <summary>Gets or sets the schema type (default: JsonSchema).</summary>
+        public SchemaType SchemaType { get; set; } = SchemaType.JsonSchema;
 
         /// <summary>Gets or sets a value indicating whether to generate default values for properties (when JSON Schema default is set, default: true).</summary>
         public bool GenerateDefaultValues { get; set; }
@@ -44,5 +48,11 @@ namespace NJsonSchema.CodeGeneration
         /// <summary>Gets or sets the template factory.</summary>
         [JsonIgnore]
         public ITemplateFactory TemplateFactory { get; set; }
+
+        /// <summary>Gets or sets a value indicating whether to use DotLiquid templates (experimental).</summary>
+        public bool UseLiquidTemplates { get; set; }
+
+        /// <summary>Gets or sets the template directory path.</summary>
+        public string TemplateDirectory { get; set; }
     }
 }

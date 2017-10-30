@@ -11,39 +11,18 @@ namespace NJsonSchema.CodeGeneration.Tests.TypeScript
         public void When_class_order_is_wrong_then_classes_are_correctly_reordered()
         {
             //// Arrange
-            var classes = new List<TypeGeneratorResult>
+            var classes = new List<CodeArtifact>
             {
-                new TypeGeneratorResult
-                {
-                    TypeName = "Car"
-                },
-                new TypeGeneratorResult
-                {
-                    TypeName = "Apple",
-                    BaseTypeName = "Fruit"
-                },
-                new TypeGeneratorResult
-                {
-                    TypeName = "Professor",
-                    BaseTypeName = "Teacher"
-                },
-                new TypeGeneratorResult
-                {
-                    TypeName = "Teacher",
-                    BaseTypeName = "Person"
-                },
-                new TypeGeneratorResult
-                {
-                    TypeName = "Fruit"
-                },
-                new TypeGeneratorResult
-                {
-                    TypeName = "Person"
-                }
+                new CodeArtifact("Car", CodeArtifactType.Class, CodeArtifactLanguage.CSharp),
+                new CodeArtifact("Apple", "List<Fruit>", CodeArtifactType.Class, CodeArtifactLanguage.CSharp),
+                new CodeArtifact("Professor", "Teacher", CodeArtifactType.Class, CodeArtifactLanguage.CSharp),
+                new CodeArtifact("Teacher", "Person[]", CodeArtifactType.Class, CodeArtifactLanguage.CSharp),
+                new CodeArtifact("Fruit", CodeArtifactType.Class, CodeArtifactLanguage.CSharp),
+                new CodeArtifact("Person", CodeArtifactType.Class, CodeArtifactLanguage.CSharp)
             };
 
             //// Act
-            classes = ClassOrderUtilities.Order(classes).ToList();
+            classes = CodeArtifactCollection.OrderByBaseDependency(classes).ToList();
             var order = string.Join(", ", classes.Select(c => c.TypeName));
 
             //// Assert

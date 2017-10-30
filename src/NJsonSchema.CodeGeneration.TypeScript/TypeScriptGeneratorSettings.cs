@@ -25,9 +25,10 @@ namespace NJsonSchema.CodeGeneration.TypeScript
             ExtensionCode = string.Empty;
             TypeScriptVersion = 1.8m;
             GenerateConstructorInterface = true;
+            ConvertConstructorInterfaceData = false;
 
             PropertyNameGenerator = new TypeScriptPropertyNameGenerator();
-            TemplateFactory = new DefaultTemplateFactory();
+            TemplateFactory = new DefaultTemplateFactory(this);
         }
 
         /// <summary>Gets or sets the target TypeScript version (default: 1.8).</summary>
@@ -71,6 +72,9 @@ namespace NJsonSchema.CodeGeneration.TypeScript
 
         /// <summary>Gets or sets a value indicating whether to generate an class interface which is used in the constructor to initialize the class (default: true).</summary>
         public bool GenerateConstructorInterface { get; set; }
+
+        /// <summary>Gets or sets a value indicating whether POJO objects in the constructor data are converted to DTO instances (GenerateConstructorInterface must be enabled, default: false).</summary>
+        public bool ConvertConstructorInterfaceData { get; set; }
 
         internal ITemplate CreateTemplate(string typeName, object model)
         {

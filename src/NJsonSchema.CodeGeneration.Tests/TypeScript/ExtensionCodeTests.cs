@@ -13,6 +13,7 @@ namespace NJsonSchema.CodeGeneration.Tests.TypeScript
 import generated = require(""foo/bar"");
 import foo = require(""foo/bar"");
 import bar = require(""foo/bar"");
+import 'rxjs/add/operator/map';
 
 export class Bar extends generated.Bar {
     get title() {
@@ -39,6 +40,11 @@ export class Test {
     }
 }
 
+export abstract class BaseClass {
+    doIt() {
+    }
+}
+
 var x = 10;";
 
         [TestMethod]
@@ -48,7 +54,7 @@ var x = 10;";
             var code = Code;
 
             //// Act
-            var ext = new TypeScriptExtensionCode(code, new[] { "Foo", "Bar" });
+            var ext = new TypeScriptExtensionCode(code, new[] { "Foo", "Bar" }, new [] { "BaseClass" });
 
             //// Assert
             Assert.IsTrue(ext.ExtensionClasses.ContainsKey("Foo"));
@@ -65,6 +71,8 @@ var x = 10;";
             Assert.IsTrue(ext.BottomCode.Contains("if (clientClasses.hasOwnProperty(clientClass))"));
             Assert.IsTrue(ext.BottomCode.Contains("export class Test"));
             Assert.IsTrue(ext.BottomCode.EndsWith("var x = 10;"));
+
+            Assert.IsTrue(ext.TopCode.Contains("export abstract class BaseClass"));
 
             var body = ext.GetExtensionClassBody("Foo");
             Assert.IsTrue(body.Contains("get title() {"));
